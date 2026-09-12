@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>1000 баллов</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:var(--tg-theme-secondary-bg-color,#F2F4F7);
+  --card:var(--tg-theme-bg-color,#FFFFFF);
+  --text:var(--tg-theme-text-color,#1F3A5F);
+  --hint:var(--tg-theme-hint-color,#8A94A6);
+  --seg:var(--tg-theme-secondary-bg-color,#EEF1F5);
+  --green:#2E8B6E; --green-soft:#DFF3E8; --green-dark:#1E6A52;
+  --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  -webkit-user-select:none;user-select:none;-webkit-text-size-adjust:100%}
+.app{max-width:480px;margin:0 auto;padding:10px 14px calc(28px + env(safe-area-inset-bottom))}
+.title{font-size:17px;font-weight:800;letter-spacing:.4px;text-align:center;padding:8px 0 12px}
+.card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.label{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--hint)}
+
+/* hero */
+.hero{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.balance{font-size:56px;font-weight:800;line-height:1.05;letter-spacing:-1.5px;margin:4px 0 6px;font-variant-numeric:tabular-nums}
+.sub{font-size:13px;color:var(--hint)} .sub b{color:var(--text);font-weight:700}
+.done{font-size:14px;font-weight:700;color:var(--green)}
+.ring{position:relative;width:112px;height:112px;flex:none}
+.ring svg{transform:rotate(-90deg);width:112px;height:112px}
+.ring .track{fill:none;stroke:var(--seg);stroke-width:10}
+.ring .bar{fill:none;stroke:var(--green);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)}
+.ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-text span{font-size:22px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.ring-text small{font-size:10px;color:var(--hint);font-weight:600;letter-spacing:.4px;margin-top:1px}
+
+/* day nav */
+.daynav{display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px}
+.daynav button{width:44px;height:44px;border:0;border-radius:14px;background:var(--card);color:var(--text);font-size:24px;font-weight:300;line-height:1}
+.daynav button:disabled{opacity:.3}
+.daylabel{text-align:center}
+.daylabel .dn{font-size:19px;font-weight:800}
+.daylabel .dd{font-size:12px;color:var(--hint);margin-top:2px}
+
+/* categories */
+.cat{margin-bottom:10px;padding:14px 14px 12px}
+.cat-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cat-emoji{font-size:26px;width:34px;text-align:center;flex:none}
+.cat-name{font-size:16px;font-weight:700}
+.cat-hint{font-size:12px;color:var(--hint);line-height:1.3;margin-top:1px}
+.cat-val{margin-left:auto;font-size:22px;font-weight:800;min-width:26px;text-align:right;color:var(--hint);font-variant-numeric:tabular-nums}
+.cat-val.v1{color:var(--green-dark)} .cat-val.v2{color:var(--green)}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;height:46px;border:0;border-radius:13px;background:var(--seg);color:var(--text);
+  font-size:19px;font-weight:700;transition:transform .08s,background .15s,color .15s}
+.seg button:active{transform:scale(.94)}
+.seg button.on0{background:var(--hint);color:var(--card)}
+.seg button.on1{background:var(--green-soft);color:var(--green-dark)}
+.seg button.on2{background:var(--green);color:#fff}
+.daytotal{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-size:15px;font-weight:600}
+.daytotal b{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.daytotal b.full{color:var(--green)}
+
+/* week */
+.week{margin-top:14px}
+.week-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.week-head .range{font-size:12px;color:var(--hint);font-weight:600}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.wd{border-radius:12px;background:var(--seg);padding:8px 0 7px;text-align:center;transition:background .15s}
+.wd span{display:block;font-size:11px;font-weight:700;color:var(--hint)}
+.wd b{display:block;font-size:17px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums;color:var(--hint)}
+.wd.filled b{color:var(--text)} .wd.top b{color:var(--green)}
+.wd.sel{outline:2px solid var(--green);outline-offset:-2px}
+.wd.today span{color:var(--green)}
+.wd.future{opacity:.35}
+.week-foot{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;gap:8px;flex-wrap:wrap}
+.week-foot b{font-size:14px;font-weight:800;color:var(--green);letter-spacing:.3px}
+.week-foot span{font-size:12px;color:var(--hint);font-weight:600}
+.streak{text-align:center;font-size:13px;font-weight:700;margin:16px 0 6px;color:var(--text)}
+.legend{text-align:center;font-size:11px;color:var(--hint);line-height:1.5;padding:0 6px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  background:var(--text);color:var(--card);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="title" id="title">🎯 ШАХЗОД — 1000 БАЛЛОВ</div>
+
+  <section class="card hero">
+    <div>
+      <div class="label">ТЕКУЩИЙ БАЛАНС</div>
+      <div class="balance" id="balance">…</div>
+      <div class="sub" id="sub">Цель <b>1000</b> · Осталось <b id="left">1000</b></div>
+    </div>
+    <div class="ring">
+      <svg viewBox="0 0 120 120">
+        <circle class="track" cx="60" cy="60" r="52"/>
+        <circle class="bar" id="ring" cx="60" cy="60" r="52"/>
+      </svg>
+      <div class="ring-text"><span id="pct">0%</span><small>К 1000</small></div>
+    </div>
+  </section>
+
+  <div class="daynav">
+    <button id="prev" aria-label="Назад">‹</button>
+    <div class="daylabel"><div class="dn" id="dayName">Сегодня</div><div class="dd" id="dayDate"></div></div>
+    <button id="next" aria-label="Вперёд">›</button>
+  </div>
+
+  <div id="cats"></div>
+
+  <section class="card daytotal"><span>Итого за день</span><b id="dayTotal">0 / 10</b></section>
+
+  <section class="card week">
+    <div class="week-head"><span class="label">НЕДЕЛЯ</span><span class="range" id="weekRange"></span></div>
+    <div class="week-grid" id="weekGrid"></div>
+    <div class="week-foot"><b id="weekTotal">ЗА НЕДЕЛЮ: 0 БАЛЛОВ</b><span id="weekAvg">Среднее за день: — / 10</span></div>
+  </section>
+
+  <div class="streak" id="streak"></div>
+  <div class="legend">0 — ничего не сделал · 1 — небольшое полезное действие · 2 — выполнил важную задачу<br>Максимум за день — 10 баллов</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= НАСТРОЙКИ ================= */
+const GOAL = 1000;
+const CATS = [
+  { e:'💼', n:'Работа',     h:'главная задача · важная задача · развитие бизнеса · отложенная задача' },
+  { e:'👨‍👩‍👧', n:'Семья',   h:'помог семье · качественное время · без напоминания · помог по дому' },
+  { e:'💪', n:'Тело',       h:'тренировка · прогулка · активность · полезная привычка' },
+  { e:'🧠', n:'Развитие',   h:'обучение · чтение · личный проект · изучение нового' },
+  { e:'🧹', n:'Дисциплина', h:'план дня · главные задачи · закончил начатое · долго откладывал' },
+];
+const DAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const MON_S  = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+
+/* ================= TELEGRAM ================= */
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('secondary_bg_color'); } catch(e){} }
+const haptic = (t) => { try { tg && tg.HapticFeedback.impactOccurred(t || 'light'); } catch(e){} };
+const userName = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name) || 'Шахзод';
+document.getElementById('title').textContent = `🎯 ${userName.toUpperCase()} — ${GOAL} БАЛЛОВ`;
+
+/* ================= ХРАНИЛИЩЕ =================
+   ключ  m:YYYY-MM  →  {"15":"2102-", ...}   ('-' = не заполнено)
+   В Telegram — CloudStorage (личное облако аккаунта), иначе — localStorage. */
+const useCloud = !!(tg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast('6.9'));
+const cloud = {
+  keys : () => new Promise((ok,er)=>tg.CloudStorage.getKeys((e,k)=>e?er(e):ok(k||[]))),
+  items: (k) => new Promise((ok,er)=>tg.CloudStorage.getItems(k,(e,v)=>e?er(e):ok(v||{}))),
+  set  : (k,v) => new Promise((ok,er)=>tg.CloudStorage.setItem(k,v,(e,r)=>e?er(e):ok(r))),
+};
+const local = {
+  keys : async () => Object.keys(localStorage).filter(k=>k.startsWith('m:')),
+  items: async (k) => Object.fromEntries(k.map(x=>[x,localStorage.getItem(x)])),
+  set  : async (k,v) => localStorage.setItem(k,v),
+};
+let store = useCloud ? cloud : local;
+const data = {};   // 'YYYY-MM' -> { 'DD': [v,v,v,v,v] }
+
+const pad = n => String(n).padStart(2,'0');
+const mKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+const dKey = d => pad(d.getDate());
+const day0 = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const sameDay = (a,b) => a.getTime() === b.getTime();
+const monday = d => addDays(d, -((d.getDay()+6)%7));
+
+function parseMonth(s){ const o = {}; try { const j = JSON.parse(s||'{}');
+  for (const k in j) o[k] = j[k].split('').slice(0,5).map(c=>c==='-'?null:+c);
+  while (false) {} } catch(e){} return o; }
+function serMonth(m){ const o = {}; for (const k in m) o[k] = m[k].map(v=>v==null?'-':v).join(''); return JSON.stringify(o); }
+
+async function load(){
+  try {
+    const keys = (await store.keys()).filter(k=>k.startsWith('m:'));
+    const items = keys.length ? await store.items(keys) : {};
+    for (const k of keys) data[k.slice(2)] = parseMonth(items[k]);
+  } catch(e) {
+    if (store === cloud) { store = local; toast('Облако недоступно — сохраняю на устройстве'); return load(); }
+  }
+}
+function getDay(d){ const m = data[mKey(d)]; return (m && m[dKey(d)]) ? m[dKey(d)].slice() : [null,null,null,null,null]; }
+async function setVal(d, i, v){
+  const mk = mKey(d), dk = dKey(d);
+  data[mk] = data[mk] || {};
+  const arr = data[mk][dk] || [null,null,null,null,null];
+  arr[i] = v; data[mk][dk] = arr;
+  if (arr.every(x=>x==null)) delete data[mk][dk];
+  try { await store.set('m:'+mk, serMonth(data[mk])); } catch(e) { toast('Не удалось сохранить, проверьте связь'); }
+}
+
+/* ================= РАСЧЁТЫ ================= */
+const sumArr = a => a.reduce((s,v)=>s+(v||0),0);
+const dayTotal = d => sumArr(getDay(d));
+const isFilled = d => getDay(d).some(v=>v!=null);
+function balance(){ let s = 0; for (const m in data) for (const k in data[m]) s += sumArr(data[m][k]); return s; }
+function plural(n){ const a = n%10, b = n%100; if (b>=11&&b<=14) return 'БАЛЛОВ'; if (a===1) return 'БАЛЛ'; if (a>=2&&a<=4) return 'БАЛЛА'; return 'БАЛЛОВ'; }
+function streak(){ let d = day0(new Date()), s = 0; if (dayTotal(d) < 1) d = addDays(d,-1); while (dayTotal(d) >= 1) { s++; d = addDays(d,-1); } return s; }
+
+/* ================= UI ================= */
+const $ = id => document.getElementById(id);
+const today = day0(new Date());
+let sel = today;
+const C = 2*Math.PI*52;
+$('ring').style.strokeDasharray = C;
+$('ring').style.strokeDashoffset = C;
+
+/* карточки категорий */
+const catEls = CATS.map((c,i) => {
+  const el = document.createElement('section'); el.className = 'card cat';
+  el.innerHTML = `<div class="cat-head"><div class="cat-emoji">${c.e}</div>
+      <div><div class="cat-name">${c.n}</div><div class="cat-hint">${c.h}</div></div>
+      <div class="cat-val" id="cv${i}">—</div></div>
+    <div class="seg">${[0,1,2].map(v=>`<button data-v="${v}">${v}</button>`).join('')}</div>`;
+  el.querySelectorAll('button').forEach(b => b.onclick = async () => {
+    const v = +b.dataset.v, cur = getDay(sel)[i];
+    const nv = (cur === v) ? null : v;           // повторное нажатие снимает оценку
+    haptic(nv === 2 ? 'medium' : 'light');
+    await setVal(sel, i, nv); render();
+  });
+  $('cats').appendChild(el); return el;
+});
+
+function render(){
+  const bal = balance(), p = Math.min(1, bal/GOAL);
+  $('balance').textContent = bal;
+  $('pct').textContent = Math.round(p*100) + '%';
+  $('ring').style.strokeDashoffset = C*(1-p);
+  $('sub').innerHTML = bal >= GOAL ? `<span class="done">🎉 Цель достигнута!</span>`
+                                    : `Цель <b>${GOAL}</b> · Осталось <b>${GOAL-bal}</b>`;
+
+  const diff = Math.round((today - sel)/86400000);
+  $('dayName').textContent = diff === 0 ? 'Сегодня' : diff === 1 ? 'Вчера' : DAYS[(sel.getDay()+6)%7];
+  $('dayDate').textContent = `${DAYS[(sel.getDay()+6)%7]}, ${sel.getDate()} ${MONTHS[sel.getMonth()]}`;
+  $('next').disabled = diff === 0;
+
+  const day = getDay(sel);
+  catEls.forEach((el,i) => {
+    el.querySelectorAll('button').forEach(b => b.className = (day[i] === +b.dataset.v) ? 'on'+b.dataset.v : '');
+    const cv = $('cv'+i); cv.textContent = day[i] == null ? '—' : day[i]; cv.className = 'cat-val' + (day[i] ? ' v'+day[i] : '');
+  });
+  const dt = sumArr(day);
+  $('dayTotal').textContent = `${dt} / 10`; $('dayTotal').className = dt === 10 ? 'full' : '';
+
+  const mon = monday(sel), sun = addDays(mon,6);
+  $('weekRange').textContent = mon.getMonth() === sun.getMonth()
+    ? `${mon.getDate()} – ${sun.getDate()} ${MON_S[sun.getMonth()]}`
+    : `${mon.getDate()} ${MON_S[mon.getMonth()]} – ${sun.getDate()} ${MON_S[sun.getMonth()]}`;
+  let wt = 0, wc = 0, grid = '';
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(mon,i), t = dayTotal(d), f = isFilled(d), fut = d > today;
+    if (f) { wt += t; wc++; }
+    grid += `<div class="wd${sameDay(d,sel)?' sel':''}${sameDay(d,today)?' today':''}${f?' filled':''}${t>=8?' top':''}${fut?' future':''}" data-i="${i}">
+      <span>${DAYS[i]}</span><b>${f ? t : '·'}</b></div>`;
+  }
+  $('weekGrid').innerHTML = grid;
+  $('weekGrid').querySelectorAll('.wd').forEach(el => el.onclick = () => {
+    const d = addDays(mon,+el.dataset.i); if (d > today) return; sel = d; haptic('light'); render();
+  });
+  $('weekTotal').textContent = `ЗА НЕДЕЛЮ: ${wt} ${plural(wt)}`;
+  $('weekAvg').textContent = `Среднее за день: ${wc ? String(Math.round(wt/wc*10)/10).replace('.',',') : '—'} / 10`;
+
+  const s = streak();
+  $('streak').textContent = s >= 2 ? `🔥 ${s} дней подряд` : '';
+}
+
+$('prev').onclick = () => { sel = addDays(sel,-1); haptic('light'); render(); };
+$('next').onclick = () => { if (sel < today) { sel = addDays(sel,1); haptic('light'); render(); } };
+
+let toastT; function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove('show'), 2500); }
+
+load().then(render);
+</script>
+</body>
+</html>
